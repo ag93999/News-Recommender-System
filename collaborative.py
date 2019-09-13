@@ -4,10 +4,16 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import LatentDirichletAllocation
 from nltk.stem.snowball import SnowballStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import stopwords
 from scipy.sparse import csr_matrix
+from nltk import sent_tokenize, word_tokenize, pos_tag
 from collections import Counter
+from stemming.porter2 import stem
+from bs4 import BeautifulSoup
+from string import digits
 import nltk
+import string
 import  sklearn
 import re
 import pdb
@@ -25,14 +31,64 @@ contents = news["Content"].tolist()
 title = news['Title']
 article_id = news['Article_Id']
 
+regex = r'\w+'
+stop = set(stopwords.words('english'))- set({'not','didn','shouldn','haven','won','weren','wouldn','hasn','couldn','ain','needn','mightn','don','nor','isn','shan','no','wasn','mustn','hadn'})
+exclude = set(string.punctuation)
+lemma = WordNetLemmatizer()
+cleanr = re.compile('<.*?>')
+
+def clean(doc):
+    remove_digits = str.maketrans('', '', digits)
+    doc = doc.translate(remove_digits)
+    cleantext = BeautifulSoup(doc, "html.parser").text
+    doc = re.sub(cleanr, ' ', doc)
+    doc = doc.replace("<div>"," ")
+    doc = doc.replace("</div>"," ")
+    doc = doc.replace(".</div>"," ")
+    doc = doc.replace("<br />"," ")
+    doc = doc.replace("."," ")
+    doc = doc.replace(":"," ")
+    doc = doc.replace(","," ")
+    doc = doc.replace("_"," ")
+    doc = doc.replace('-', ' ')
+    doc = doc.replace('(', ' ')
+    doc = doc.replace(')', ' ')
+    doc = doc.replace('#', ' ')
+    doc = doc.replace('/', ' ')
+    doc = doc.replace(" div "," ")
+    doc = doc.replace(" br ", " ")
+    doc = doc.replace("nbsp"," ")
+    doc = doc.replace("ndash"," ")
+    doc = doc.replace("&rsquo;", ' ')
+    doc = doc.replace("&trade;", ' ')
+    doc = re.sub(r"\&([^;.]*);", " ", doc)
+    doc = re.sub(r"([0-9]+)-([0-9]+)", " ", doc)
+    doc = re.sub(r"\d", " ", doc)
+    stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
+    punc_free = ''.join(ch for ch in stop_free if ch not in exclude)
+    punc_free = re.sub(r"\b\d+\b"," ",punc_free)
+    words = word_tokenize(punc_free)
+    lemmatized_words = [lemma.lemmatize(word) for word in words]
+    #stemmed_word = [stem(w) for w in lemmatized_words]
+    #stemmed_word = [stem(w) for w in words]
+    finallist = []
+    for ch in lemmatized_words:
+        if len(ch) > 2 and len(ch) < 13 and ch.encode('utf-8').isalnum() == True and bool(re.search(r'\d', ch)) == False:
+            try:
+                finallist.append(stem(vocab_mapper[ch]))
+            except:
+                finallist.append(stem(ch))
+    final = " ".join(finallist)
+    return final
+
 def clean_tokenize(document):
     document = re.sub('[^\w_\s-]',' ',document)
     tokens  = nltk.word_tokenize(document)
     cleaned_article = ' '.join([stemmer.stem(item) for item in tokens])   #stemming the tokenized corpus
     return cleaned_article
 
-cleaned_articles = list(map(clean_tokenize,contents))
-
+cleaned_articles = list(map(clean,contents))
+pdb.set_trace()
 article_vocab = { }
 
 article_vocab = enumerate(cleaned_articles)
