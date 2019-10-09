@@ -81,14 +81,7 @@ def clean(doc):
     final = " ".join(finallist)
     return final
 
-def clean_tokenize(document):
-    document = re.sub('[^\w_\s-]',' ',document)
-    tokens  = nltk.word_tokenize(document)
-    cleaned_article = ' '.join([stemmer.stem(item) for item in tokens])   #stemming the tokenized corpus
-    return cleaned_article
-
 cleaned_articles = list(map(clean,contents))
-pdb.set_trace()
 article_vocab = { }
 
 article_vocab = enumerate(cleaned_articles)

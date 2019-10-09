@@ -81,16 +81,7 @@ def clean(doc):
     final = " ".join(finallist)
     return final
 
-def clean_tokenize(document):
-    document = re.sub('[^\w_\s-]',' ',document)
-    tokens  = nltk.word_tokenize(document)
-    cleaned_article = ' '.join([stemmer.stem(item) for item in tokens])   #stemming the tokenized corpus
-    return cleaned_article
-
 cleaned_articles = list(map(clean, contents))
-
-#pdb.set_trace()
-
 article_vocab = enumerate(cleaned_articles)
 
 total_words = []
@@ -108,7 +99,7 @@ final_vocab = {j:i for i,j in enumerate(stops_removed)}
 tf_idf = TfidfVectorizer(vocabulary=final_vocab, min_df=1)
 
 article_vocabulary_matrix = tf_idf.fit_transform(cleaned_articles)
-
+ 
 lda = LatentDirichletAllocation(n_components=n_topics, max_iter=1, random_state=0)
 
 Lda_articlemat = lda.fit_transform(article_vocabulary_matrix)
