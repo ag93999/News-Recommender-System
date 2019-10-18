@@ -86,11 +86,10 @@ def clean(doc):
 
 cleaned_articles = list(map(clean, contents))
 
-
-def Topic_Modeller(LDA_matrix):
+def Topic_Modeller():
     
     total_WordVocab = []
-    for i in range(0,len(cleaned_articles)) :
+    for i in range(0,len(cleaned_articles)):
         word_tokens = nltk.word_tokenize(cleaned_articles[i])
         for words in word_tokens :
             total_WordVocab.append(words)
@@ -105,15 +104,13 @@ def Topic_Modeller(LDA_matrix):
 
     Lda = LatentDirichletAllocation(n_components=n_topics,max_iter=1,random_state=0)
     Lda_articlemat = Lda.fit_transform(Tfidf_Matrix)
-
     return Lda_articlemat
 
 wordtokens_article = [word.split() for word in cleaned_articles]  #for userprofiles
 
-Lda_articlemat = Topic_Modeller(cleaned_articles)
+Lda_articlemat = Topic_Modeller()
 
 kmeans = KMeans(n_clusters=no_of_clusters)
-
 clustered_articles_matrix = kmeans.fit_transform(Lda_articlemat)
 
 wordtokens_article = [word.split() for word in cleaned_articles]
@@ -147,44 +144,38 @@ content_recommended = Content_Recommends_Calculator(userProfile_one,clustered_ar
 existing_users = np.random.random_sample(size=(1000,10))   #we take n existing users
 new_user = np.random.random_sample(size=(1,10))            #we take a single new user
 
-
-def Collaborative_Recommends_Calculator(existing_usr,new_usr) :
+def Collaborative_Recommends_Calculator(existing_usr,new_usr):
     collaborative_interest_score = [ ]
     sorted_collaborative_interest = [ ]
     collaborative_interest_score = cosine_similarity(existing_users,new_user)
     sorted_collaborative_interest = np.argsort(collaborative_interest_score,axis=0)[::-1][:10]
     sorted_collaborative_indexes = existing_users[sorted_collaborative_interest]
     collab_interest = np.mean(sorted_collaborative_indexes.reshape(-1,10),axis=0)
-    collaborative_interest_scores = collab_interest*0.6
+    collaborative_interest_scores = collab_interest * 0.6
     return collaborative_interest_scores
 
 collab_recommended = Collaborative_Recommends_Calculator(existing_users,new_user)
 
-def Trends(trending) :
+def Trends(trending):
     trends = np.mean(existing_users,axis=0)
     Trending_news = cosine_similarity(trends.reshape(1,10),clustered_articles_matrix)
     top= np.sort(Trending_news)[::-1][0][:10]
     return top
 
-Trending_Articles = Trends(existing_users)*0.3
-
+trending_articles = Trends(existing_users)*0.3
 
 def Hybrid_Calculator():
     hybrid_interests = np.add(content_recommended,collab_recommended)
-    similar_scores = cosine_similarity(hybrid_interests.reshape(1,10),clustered_articles_matrix)
+    similar_scores = cosine_similarity(hybrid_interests.reshape(1,10), clustered_articles_matrix)
     recommended_article_address =  np.argsort(similar_scores)[::-1]
     return recommended_article_address
 
-hybrid_recommend_indexes =  Hybrid_Calculator() #we get hyrid interest with our variations of 0.4 content based and 0.6 collab based
+hybrid_recommend_indexes =  Hybrid_Calculator() # we get hyrid interest with our variations of 0.4 content based and 0.6 collaborative based
 
-labels = kmeans.labels_
-
-maxx = np.argmax(clustered_articles_matrix,axis=1)
-
-for articles in hybrid_recommend_indexes :
-
+for articles in hybrid_recommend_indexes:
     print('Recommended-Articles :')
-
     print('\n')
-
     print(title[articles][:no_of_recommends])
+
+pdb.set_trace()
+

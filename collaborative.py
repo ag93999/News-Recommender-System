@@ -90,42 +90,31 @@ total_words = []
 
 for i in range(0, len(cleaned_articles)):
     tokens = nltk.word_tokenize(cleaned_articles[i])
-
     for w in tokens:
         total_words.append(w)
 counts = Counter(total_words)
 
 vocab = {j:i for i,j in enumerate(counts.keys())}
-
 stops_removed = [i for i in vocab.keys() if i not in stops]
-
 final_vocab = {j:i for i,j in enumerate(stops_removed)}
 
 tf_idf = TfidfVectorizer(vocabulary=final_vocab,min_df=1)
-
 article_vocabulary = tf_idf.fit_transform(cleaned_articles)
 
 lda = LatentDirichletAllocation(n_components=n_topics,max_iter=1,random_state=0)
-
 Lda_articlemat = lda.fit_transform(article_vocabulary)
 
 wordtokens_article = [word.split() for word in cleaned_articles]
 
 existing_users = np.random.random_sample(size=(10000,8)) #we take any number of users
-
 new_user = np.random.random_sample(size=(1,8)) #we take a user to recommend him according to collaborative filtering by using cosine similiarty
 
 Similarity_Score = cosine_similarity(existing_users,new_user) #now we get our similar user score from our existing users and new user
-
 top_similars_users = np.argsort(Similarity_Score,axis=0)[::-1][:5]
-
 top_users= existing_users[top_similars_users]  #picking our top 5 similar user profiles out of existing users
-
 avg_user_profile = np.max(top_users,axis=0)   # we take mean to get all the average or all the existing users
 
-
 sim_articles = cosine_similarity(avg_user_profile,Lda_articlemat) #now we find our similar articles according to our avg u.p.
-
 interested_articles = np.argsort(sim_articles)[::-1]  #we fetch the indexes of our top 5 similar articles according to user interest
 
 for i in [interested_articles[0]] :

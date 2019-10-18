@@ -69,8 +69,6 @@ def clean(doc):
     punc_free = re.sub(r"\b\d+\b"," ",punc_free)
     words = word_tokenize(punc_free)
     lemmatized_words = [lemma.lemmatize(word) for word in words]
-    #stemmed_word = [stem(w) for w in lemmatized_words]
-    #stemmed_word = [stem(w) for w in words]
     finallist = []
     for ch in lemmatized_words:
         if len(ch) > 2 and len(ch) < 13 and ch.encode('utf-8').isalnum() == True and bool(re.search(r'\d', ch)) == False:
@@ -97,11 +95,9 @@ stops_removed = [i for i in counts if i not in stops]
 final_vocab = {j:i for i,j in enumerate(stops_removed)}
 
 tf_idf = TfidfVectorizer(vocabulary=final_vocab, min_df=1)
-
 article_vocabulary_matrix = tf_idf.fit_transform(cleaned_articles)
  
 lda = LatentDirichletAllocation(n_components=n_topics, max_iter=1, random_state=0)
-
 Lda_articlemat = lda.fit_transform(article_vocabulary_matrix)
 
 wordtokens_article = [word.split() for word in cleaned_articles] 
@@ -114,7 +110,6 @@ def user_profiler(wordtokens,article_read,article_time):
         user_interest_timevalue = article_time[i]/average_time  #article_times divide by avg times of each article
         user_profile_generate = (article_read[i]*user_interest_timevalue)          #Ldamatrix[] * user_interest_time calculated
         user_profile.append(user_profile_generate)
-   # pdb.set_trace()
     return sum(user_profile)
 
 userProfile_One = user_profiler([wordtokens_article[600],wordtokens_article[99],wordtokens_article[120]],
